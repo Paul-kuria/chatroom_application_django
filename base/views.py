@@ -1,50 +1,34 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.db.models import Q
 from .models import Room, Topic
 from .forms import RoomForm
+
 # Create your views here.
-member_vehicles = [
-  {
-    
-    "name": "Sara Silver",
-    "vehicle_type": "Mazda Alexa",
-    "vehicle_plate": "KAE892"
-  },
-  {
-    "name": "Paul M",
-    "vehicle_type": "Land Rover T110",
-    "vehicle_color": "All Black",
-    "vehicle_plate": "18CCM"
-  },
-  {
-    "name": "Sandra Bullock",
-    "vehicle_type": "Mobius",
-    "vehicle_plate": "KEKMM123X"
-  },
-  {
-    "name": "Natalie A",
-    "vehicle_type": "Range Rover T110",
-    "vehicle_plate": "L0ZIKRE"
-  }
-]
-
 def home(request):
-    rooms = Room.objects.all() # model manager
-
+    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    rooms = Room.objects.filter(
+        Q(topic__name__icontains=q) |
+        Q(name__icontains=q) |
+        Q(description__icontains=q)
+        )
+    # rooms = Room.objects.all() # model manager
     topics = Topic.objects.all()
+    room_count = rooms.count()
 
     context = {
         'name_rooms': rooms,
         'name_topics': topics,
+        'room_count':room_count,
         }
     return render(request, 'base/home.html', context) # Render request is how we pass data back and forth
     # return HttpResponse('Home Page') : Replace method
 
 def room(request, pk):
     # room = None 
-    # for i in rooms:
-    #     if i['name'] == str(pk):
-    #         room = i
+    # for item in rooms:
+    #     if item['id'] == int(pk):
+    #         room = item
     room = Room.objects.get(id=pk)
     
     context = {'room': room}
